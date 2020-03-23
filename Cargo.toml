@@ -1,0 +1,18 @@
+﻿[package]
+name = "poller"
+version = "0.1.0"
+authors = ["Varphone Wong <varphone@qq.com>"]
+edition = "2018"
+
+# Metadata for Publish
+description = """
+File I/O events library for Rust.
+"""
+documentation = "https://docs.rs/poller"
+homepage = "https://github.com/varphone/poller-rs"
+readme = "README.md"
+categories = ["embedded", "asynchronous", "file", "io"]
+license = "MIT"
+
+[target.'cfg(unix)'.dependencies]
+libc = "^0.2.66"
