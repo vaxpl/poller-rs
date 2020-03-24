@@ -120,11 +120,10 @@ pub mod epoll;
 
 #[cfg(target_os = "linux")]
 #[doc(inline)]
-pub use epoll::{Poller};
+pub use epoll::{EventContext, EventData, Poller};
 
 #[cfg(not(target_os = "linux"))]
 pub mod select;
 
 #[cfg(test)]
-mod tests {
-}
+mod tests {}

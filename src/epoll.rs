@@ -1,6 +1,10 @@
+﻿//! Linux 增强型 I/O 事件通知。
+//!
 use crate::{Events, SysError};
 use libc::{close, epoll_create1, epoll_ctl, epoll_wait};
+use std::any::Any;
 use std::collections::HashMap;
+use std::sync::Arc;
 
 impl From<u32> for Events {
     fn from(val: u32) -> Self {
@@ -34,11 +38,22 @@ impl Into<u32> for Events {
     }
 }
 
+/// 定义事件关联上下文。
+pub type EventContext = Arc<dyn Any + Send + Sync>;
+
+/// 定义事件数据。
+///
+/// # Fields
+/// * `0` - 触发的文件描述符。
+/// * `1` - 触发的事件集合。
+/// * `2` - 触发的事件对应上下文。
+pub type EventData<'a> = (i32, Events, Option<&'a EventContext>);
+
 /// 定义文件 I/O 事件通知器。
 #[derive(Debug)]
 pub struct Poller {
     epoll_fd: i32,
-    watches: HashMap<i32, Events>,
+    watches: HashMap<i32, (Events, Option<EventContext>)>,
 }
 
 impl Default for Poller {
@@ -73,7 +88,12 @@ impl Poller {
     }
 
     /// 添加一个文件描述符到监视列表中。
-    pub fn add(&mut self, fd: i32, events: Events) -> Result<(), SysError> {
+    pub fn add(
+        &mut self,
+        fd: i32,
+        events: Events,
+        ctx: Option<EventContext>,
+    ) -> Result<(), SysError> {
         unsafe {
             let mut ev = libc::epoll_event {
                 events: events.into(),
@@ -83,7 +103,7 @@ impl Poller {
             if err < 0 {
                 return Err(SysError::last());
             }
-            self.watches.insert(fd, events);
+            self.watches.insert(fd, (events, ctx));
             Ok(())
         }
     }
@@ -109,12 +129,12 @@ impl Poller {
     ///
     /// ```
     /// let mut poller = Poller::new();
-    /// poller.add(0, Events::new().with_read());
-    /// for (fd, events) in poller.pull_events(1000).unwrap().iter() {
-    ///     println!("Fd={}, Events={}", fd, events);
+    /// poller.add(0, Events::new().with_read(), None);
+    /// for (fd, events, ctx) in poller.pull_events(1000).unwrap().iter() {
+    ///     println!("Fd={}, Events={}, Context={:?}", fd, events, ctx);
     /// }
     /// ```
-    pub fn pull_events(&self, timeout_ms: i32) -> Result<Vec<(i32, Events)>, SysError> {
+    pub fn pull_events(&self, timeout_ms: i32) -> Result<Vec<EventData>, SysError> {
         unsafe {
             let mut ev: Vec<libc::epoll_event> = Vec::with_capacity(self.watches.len());
             let nfds = epoll_wait(
@@ -129,7 +149,13 @@ impl Poller {
             ev.set_len(nfds as usize);
             Ok(ev
                 .into_iter()
-                .map(|x| (x.u64 as i32, Events::from(x.events)))
+                .map(|x| {
+                    if let Some(v) = self.watches.get(&(x.u64 as i32)) {
+                        (x.u64 as i32, Events::from(x.events), v.1.as_ref())
+                    } else {
+                        (x.u64 as i32, Events::from(x.events), None)
+                    }
+                })
                 .collect())
         }
     }
@@ -145,13 +171,19 @@ mod tests {
             let cstr = std::ffi::CString::new("/proc/uptime").unwrap();
             let fd = libc::open(cstr.as_ptr(), libc::O_RDONLY);
             let mut poller = Poller::new();
-            assert_eq!(poller.add(fd, Events::new().with_read()).is_ok(), true);
+            assert_eq!(
+                poller.add(fd, Events::new().with_read(), None).is_ok(),
+                true
+            );
             for _ in 0..1000 {
                 assert_eq!(poller.pull_events(1000).unwrap().len(), 1);
             }
             assert_eq!(poller.remove(fd).is_ok(), true);
             for _ in 0..1000 {
-                assert_eq!(poller.add(fd, Events::new().with_read()).is_ok(), true);
+                assert_eq!(
+                    poller.add(fd, Events::new().with_read(), None).is_ok(),
+                    true
+                );
                 assert_eq!(poller.remove(fd).is_ok(), true);
             }
             libc::close(fd);

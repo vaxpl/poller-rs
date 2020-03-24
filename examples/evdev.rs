@@ -1,8 +1,9 @@
-use libc::{input_event, timeval};
-use poller::{Events, Poller};
+﻿use libc::{input_event, timeval};
+use poller::{EventContext, Events, Poller};
 use std::fs::File;
 use std::io::Read;
 use std::os::unix::io::AsRawFd;
+use std::sync::Arc;
 
 #[derive(Clone, Copy)]
 #[repr(C)]
@@ -85,17 +86,44 @@ impl std::fmt::Display for TimeVal {
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let mut evdev = File::open("/dev/input/event5")?; // Mouse evdev
+    // Open the linux evdev.
+    let evdev = Arc::new(File::open("/dev/input/event0")?);
+    // Create the Poller.
     let mut poller = Poller::new();
-    poller.add(evdev.as_raw_fd(), Events::new().with_read())?;
+    // Add stdin to the watching list of the Poller.
+    poller.add(0, Events::new().with_read(), None)?;
+    // Add evdev to the watching list of the Poller.
+    poller.add(
+        evdev.as_raw_fd(),
+        Events::new().with_read(),
+        Some(Arc::clone(&evdev) as EventContext),
+    )?;
+    // Buffer to read one InputEvent data from evdev.
     const N: usize = std::mem::size_of::<input_event>();
     let mut buf: [u8; N] = [0; N];
-    loop {
+
+    println!("Press any key to exit ...");
+
+    'outer: loop {
+        // Pull all events with 1 seconds timeout.
         let events = poller.pull_events(1000)?;
-        for (_fd, _events) in events.iter() {
-            evdev.read_exact(&mut buf)?;
+        for (_fd, _events, _ctx) in events.iter() {
+            // Exit loop if press any key.
+            if _fd == &0 {
+                break 'outer;
+            }
+            // Use EventContext to processing the event.
+            if let Some(x) = _ctx {
+                if let Some(mut f) = x.downcast_ref::<File>() {
+                    f.read_exact(&mut buf)?;
+                }
+            }
+            // Cast the buffer to &InputEvent.
             let a = unsafe { std::mem::transmute::<&[u8; N], &InputEvent>(&buf) };
+            // Display the InputEvent.
             println!("{}", a);
         }
     }
+
+    Ok(())
 }

@@ -11,9 +11,9 @@ use poller::{Events, Poller};
 
 fn main() {
     let mut poller = Poller::new();
-    poller.add(0, Events::new().with_read());
-    for (fd, events) in poller.pull_events(1000).unwrap().iter() {
-        println!("Fd={}, Events={}", fd, events);
+    poller.add(0, Events::new().with_read(), None);
+    for (fd, events, ctx) in poller.pull_events(1000).unwrap().iter() {
+        println!("Fd={}, Events={}, Context={:?}", fd, events, ctx);
     }
 }
 ```
