@@ -50,6 +50,8 @@ pub type EventContext = Arc<dyn Any + Send + Sync>;
 pub type EventData<'a> = (i32, Events, Option<&'a EventContext>);
 
 /// 定义文件 I/O 事件通知器。
+///
+/// 每个实例可以管理多个 `fd` 的 I/O 事件。
 #[derive(Debug)]
 pub struct Poller {
     epoll_fd: i32,
