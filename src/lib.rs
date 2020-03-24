@@ -20,6 +20,12 @@ pub enum Event {
 }
 
 /// 定义事件集合。
+///
+/// # Examples
+///
+/// ```
+/// let events = Events::new().with_read();
+/// ```
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
 pub struct Events(u32);
 
