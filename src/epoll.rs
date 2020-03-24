@@ -88,6 +88,8 @@ impl Poller {
     }
 
     /// 添加一个文件描述符到监视列表中。
+    ///
+    /// **注意：** 此函数不会把 `fd` 的所有权转移到 `Poller` 内，请确保在 `Poller` 活动期内 `fd` 都是可用的。
     pub fn add(
         &mut self,
         fd: i32,
