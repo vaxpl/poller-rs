@@ -24,6 +24,7 @@ pub enum Event {
 /// # Examples
 ///
 /// ```
+/// use poller::Events;
 /// let events = Events::new().with_read();
 /// ```
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
