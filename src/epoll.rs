@@ -135,8 +135,9 @@ impl Poller {
     /// # Examples
     ///
     /// ```
-    /// let mut poller = Poller::new();
-    /// poller.add(0, Events::new().with_read(), None);
+    /// use poller::{Events, Poller};
+    /// let mut poller = Poller::new().unwrap();
+    /// poller.add(1, Events::new().with_write(), None).unwrap();
     /// for (fd, events, ctx) in poller.pull_events(1000).unwrap().iter() {
     ///     println!("Fd={}, Events={}, Context={:?}", fd, events, ctx);
     /// }
@@ -177,7 +178,7 @@ mod tests {
         unsafe {
             let cstr = std::ffi::CString::new("/proc/uptime").unwrap();
             let fd = libc::open(cstr.as_ptr(), libc::O_RDONLY);
-            let mut poller = Poller::new();
+            let mut poller = Poller::new().unwrap();
             assert_eq!(
                 poller.add(fd, Events::new().with_read(), None).is_ok(),
                 true

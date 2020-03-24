@@ -89,7 +89,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Open the linux evdev.
     let evdev = Arc::new(File::open("/dev/input/event0")?);
     // Create the Poller.
-    let mut poller = Poller::new();
+    let mut poller = Poller::new()?;
     // Add stdin to the watching list of the Poller.
     poller.add(0, Events::new().with_read(), None)?;
     // Add evdev to the watching list of the Poller.
