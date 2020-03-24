@@ -80,12 +80,15 @@ impl Drop for Poller {
 
 impl Poller {
     /// 创建一个新的 I/O 事件通知器。
-    pub fn new() -> Self {
+    pub fn new() -> Result<Self, SysError> {
         let epoll_fd = unsafe { epoll_create1(0) };
-        assert!(epoll_fd > 0, "epoll_create()");
-        Self {
-            epoll_fd,
-            watches: HashMap::new(),
+        if epoll_fd < 0 {
+            Err(SysError::last())
+        } else {
+            Ok(Self {
+                epoll_fd,
+                watches: HashMap::new(),
+            })
         }
     }
 
