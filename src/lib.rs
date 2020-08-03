@@ -1,6 +1,4 @@
-﻿use libc;
-
-/// 定时事件枚举。
+﻿/// 定时事件枚举。
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub enum Event {
     /// 没有事件。
