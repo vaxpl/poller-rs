@@ -15,4 +15,4 @@ categories = ["embedded", "asynchronous"]
 license = "MIT"
 
 [target.'cfg(unix)'.dependencies]
-libc = "^0.2.66"
+libc = "0.2"
