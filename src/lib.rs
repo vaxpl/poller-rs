@@ -41,25 +41,25 @@ impl Events {
     }
 
     /// 清空当前值且返回一个空事件集合。
-    pub fn with_none(mut self) -> Self {
+    pub fn none(mut self) -> Self {
         self.0 = 0;
         self
     }
 
     /// 附加数据到达事件到集合中。
-    pub fn with_read(mut self) -> Self {
+    pub fn read(mut self) -> Self {
         self.0 |= 1 << Event::Read as u32;
         self
     }
 
     /// 附加目标可写事件到集合中。
-    pub fn with_write(mut self) -> Self {
+    pub fn write(mut self) -> Self {
         self.0 |= 1 << Event::Write as u32;
         self
     }
 
     /// 附加发生错误事件到集合中。
-    pub fn with_error(mut self) -> Self {
+    pub fn error(mut self) -> Self {
         self.0 |= 1 << Event::Error as u32;
         self
     }

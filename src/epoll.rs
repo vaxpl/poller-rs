@@ -1,4 +1,4 @@
-﻿//! Linux 增强型 I/O 事件通知。
+//! Linux 增强型 I/O 事件通知。
 //!
 use crate::{Events, SysError};
 use libc::{close, epoll_create1, epoll_ctl, epoll_wait};
@@ -10,13 +10,13 @@ impl From<u32> for Events {
     fn from(val: u32) -> Self {
         let mut events = Events::new();
         if (val & libc::EPOLLIN as u32) == libc::EPOLLIN as u32 {
-            events = events.with_read();
+            events = events.read();
         }
         if (val & libc::EPOLLOUT as u32) == libc::EPOLLOUT as u32 {
-            events = events.with_write();
+            events = events.write();
         }
         if (val & libc::EPOLLERR as u32) == libc::EPOLLERR as u32 {
-            events = events.with_error();
+            events = events.error();
         }
         events
     }
@@ -179,19 +179,13 @@ mod tests {
             let cstr = std::ffi::CString::new("/proc/uptime").unwrap();
             let fd = libc::open(cstr.as_ptr(), libc::O_RDONLY);
             let mut poller = Poller::new().unwrap();
-            assert_eq!(
-                poller.add(fd, Events::new().with_read(), None).is_ok(),
-                true
-            );
+            assert_eq!(poller.add(fd, Events::new().read(), None).is_ok(), true);
             for _ in 0..1000 {
                 assert_eq!(poller.pull_events(1000).unwrap().len(), 1);
             }
             assert_eq!(poller.remove(fd).is_ok(), true);
             for _ in 0..1000 {
-                assert_eq!(
-                    poller.add(fd, Events::new().with_read(), None).is_ok(),
-                    true
-                );
+                assert_eq!(poller.add(fd, Events::new().read(), None).is_ok(), true);
                 assert_eq!(poller.remove(fd).is_ok(), true);
             }
             libc::close(fd);

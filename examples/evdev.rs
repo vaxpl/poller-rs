@@ -91,11 +91,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Create the Poller.
     let mut poller = Poller::new()?;
     // Add stdin to the watching list of the Poller.
-    poller.add(0, Events::new().with_read(), None)?;
+    poller.add(0, Events::new().read(), None)?;
     // Add evdev to the watching list of the Poller.
     poller.add(
         evdev.as_raw_fd(),
-        Events::new().with_read(),
+        Events::new().read(),
         Some(Arc::clone(&evdev) as EventContext),
     )?;
     // Buffer to read one InputEvent data from evdev.

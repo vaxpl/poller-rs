@@ -28,7 +28,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Add stdin to the watching list of the Poller.
     poller.add(
         0,
-        Events::new().with_read(),
+        Events::new().read(),
         Some(Arc::clone(&cb) as EventContext),
     )?;
 
