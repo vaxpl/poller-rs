@@ -23,7 +23,7 @@ pub enum Event {
 ///
 /// ```
 /// use poller::Events;
-/// let events = Events::new().with_read();
+/// let events = Events::new().read();
 /// ```
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
 pub struct Events(u32);

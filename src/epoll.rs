@@ -137,7 +137,7 @@ impl Poller {
     /// ```
     /// use poller::{Events, Poller};
     /// let mut poller = Poller::new().unwrap();
-    /// poller.add(1, Events::new().with_write(), None).unwrap();
+    /// poller.add(1, Events::new().write(), None).unwrap();
     /// for (fd, events, ctx) in poller.pull_events(1000).unwrap().iter() {
     ///     println!("Fd={}, Events={}, Context={:?}", fd, events, ctx);
     /// }
