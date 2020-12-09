@@ -9,7 +9,7 @@ description = """
 File I/O events library for Rust.
 """
 documentation = "https://docs.rs/poller"
-homepage = "https://github.com/varphone/poller-rs"
+homepage = "https://github.com/vaxpl/poller-rs"
 readme = "README.md"
 categories = ["embedded", "asynchronous"]
 license = "MIT"
